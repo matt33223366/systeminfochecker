@@ -1,0 +1,43 @@
+# Get CPU Information
+$cpuInfo = Get-WmiObject Win32_Processor
+$cpuName = $cpuInfo.Name
+$cpuCores = $cpuInfo.NumberOfCores
+$cpuSpeed = $cpuInfo.MaxClockSpeed
+
+# Get RAM Information
+$ramInfo = Get-WmiObject Win32_ComputerSystem
+$ramAmount = [math]::Round($ramInfo.TotalPhysicalMemory / 1MB, 2)
+
+# Get Graphics Card Information
+$graphicsInfo = Get-WmiObject Win32_VideoController
+$graphicsName = $graphicsInfo.Name
+$graphicsMemory = [math]::Round($graphicsInfo.AdapterRAM / 1MB, 2)
+
+# Get Windows Version
+$windowsVersion = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -Name "ProductName").ProductName
+
+# Get Storage Information
+$driveInfo = Get-WmiObject Win32_LogicalDisk -Filter "DriveType=3"
+$drive = $driveInfo | Select-Object -First 1
+$driveName = $drive.VolumeName
+$driveType = switch ($driveInfo.MediaType) {
+    4 { "SSD" }
+    3 { "HDD" }
+    default { "Unknown" }
+}
+$totalStorage = [math]::Round($drive.Size / 1GB, 2)
+$usedStorage = [math]::Round(($drive.Size - $drive.FreeSpace) / 1GB, 2)
+$percentUsed = [math]::Round(($usedStorage / $totalStorage) * 100, 2)
+
+# Output the gathered information
+Write-Host "CPU NAME: $cpuName"
+Write-Host "CPU CORE COUNT: $cpuCores"
+Write-Host "CPU CLOCK SPEED: $cpuSpeed MHz"
+Write-Host "RAM AMOUNT: $ramAmount MB"
+Write-Host "GRAPHICS CARD NAME: $graphicsName"
+Write-Host "GRAPHICS CARD TOTAL MEMORY: $graphicsMemory MB"
+Write-Host "WINDOWS VERSION: $windowsVersion"
+Write-Host "STORAGE NAME: $driveType"
+Write-Host "TOTAL STORAGE AMOUNT: $totalStorage GB"
+Write-Host "AMOUNT OF STORAGE USED: $usedStorage GB"
+Write-Host "% OF STORAGE USED: $percentUsed%"
